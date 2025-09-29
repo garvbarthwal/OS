@@ -18,13 +18,22 @@ step2:
     mov ax,0x00
     mov ss,ax
     sti ;enable interrupts 
-    mov si,message ;Address of 'message' move into si register 
-    call print ;Calls our print function 
-    jmp $ ;Infinite loop,GO TO THIS instruction 
 
-    print:
-    mov bx,0; clears bx register to use it as a counter 
+    mov bx,0x0200
+    mov ah,0x02
+    mov al,0x01
+    mov ch,0x00
+    mov cl,0x02
+    mov dh,0x00
+    mov dl,0x80
+    int 0x13  
 
+    mov si,0x200
+    call print
+    jmp $
+
+print:
+    mov bx,0
 .loop:
     lodsb ; Loads the byte at address si into al and then increment si 
     cmp al,0 ; Compare the value of al to 0 
@@ -40,6 +49,5 @@ print_char:
     int 0x10 ; Interrupt which handle the screen operations 
     ret ; Return from print_char function 
 
-message: db 'Hello world!',0 ;String to be printed terminated by 0 
 times 510-($-$$) db 0 ;Fill the rest sector with 0 upto 510 bytes
 dw 0xAA55 ;The boot sector signature
