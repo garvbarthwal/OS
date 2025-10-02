@@ -1,8 +1,8 @@
 ORG 0x7c00
 BITS 16 
 
-CODE_SEG equ gdt_code - gdt_start
-DATA_SEG equ gdt_data - gdt_start 
+CODE_SEG equ 0x08 
+DATA_SEG equ 0x10 
 
 _start:
     jmp short start
@@ -11,7 +11,7 @@ _start:
     ;times 33 db 0
 
 start:
-    jmp 0:step2
+    jmp short step2
 
 step2:
     cli 
@@ -65,7 +65,7 @@ load32:
     mov fs,ax
     mov gs,ax
     mov ss,ax
-    mov esp,ebp
+    mov esp,0x00200000
 
     in al,0x92
     or al,2

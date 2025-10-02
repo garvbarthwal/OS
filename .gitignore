@@ -1,3 +1,4 @@
 boot.bin
 data.bin
 os.bin
+./build/*
