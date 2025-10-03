@@ -60,7 +60,7 @@ void print(const char*str){
 void kernel_main()
 {
     terminal_initialise();
-    print("Hello World!\ntest");
+    print("Hello World!\ntesting...\n");
     idt_init();
     outb(0x60,0xff);
 }
