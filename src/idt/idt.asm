@@ -1,8 +1,8 @@
 section.asm
-global idt_load:
+global idt_load
 idt_load:
     push ebp
-    mov epb,esp
+    mov ebp,esp
 
     mov ebx,[ebp+8]
     lidt [ebx]
