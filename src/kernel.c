@@ -65,5 +65,6 @@ void kernel_main()
     print("Hello World!\ntesting...\n");
     kheap_init();
     idt_init();
+    enable_interrupts();
     // outb(0x60,0xff);
 }
