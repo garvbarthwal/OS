@@ -1,7 +1,7 @@
 #include"kernel.h"
 #include<stddef.h>
 #include<stdint.h>
-
+#include "idt/idt.h"
 uint16_t* vedio_mem=0;
 size_t terminal_row=0;
 size_t terminal_col=0;
@@ -60,4 +60,5 @@ void kernel_main()
 {
     terminal_initialise();
     print("Hello World!\ntest");
+    idt_init();
 }
