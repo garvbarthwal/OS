@@ -69,10 +69,16 @@ void kernel_main()
     print("Hello World!\ntesting...\n");
     kheap_init();
     idt_init();
-
+    char* ptr=kzalloc(4096);
     kernel_chunk=paging_4gb_chunk(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
     paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
+    paging_set(paging_4gb_chunk_get_directory(kernel_chunk), (void*)0x1000,(uint32_t)ptr | PAGING_ACCESS_FROM_ALL|PAGING_IS_PRESENT |PAGING_IS_WRITEABLE);
     enable_paging();
+    char* ptr2=(char*) 0x1000;
+    ptr2[0]='A';
+    ptr2[1]='B';
+    print(ptr2);
+    print(ptr);
     enable_interrupts();
     // outb(0x60,0xff);
 }
