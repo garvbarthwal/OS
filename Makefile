@@ -47,9 +47,9 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	i686-elf-gcc $(INCLUDES) -I./src/memory/heap $(FLAGS) -std=gnu99 -c ./src/memory/heap/kheap.c -o ./build/memory/heap/kheap.o 
 
 ./build/memory/paging/paging.o: ./src/memory/paging/paging.c 
-	i686-elf-gcc $(INCLUDES) -I ./src/memory/paging/paging.c -o ./build/memory/paging/paging.o 
+	i686-elf-gcc $(INCLUDES) -I./src/memory/paging $(FLAGS) -std=gnu99 -c ./src/memory/paging/paging.c -o ./build/memory/paging/paging.o
 
-./build/memory/paging/paging.asm.o: ./src/memory/paging/paging.asm 
+./build/memory/paging/paging.asm.o: ./src/memory/paging/paging.asm
 	nasm -f elf -g ./src/memory/paging/paging.asm -o ./build/memory/paging/paging.asm.o
 clean:
 	rm -rf ./bin/boot.bin
