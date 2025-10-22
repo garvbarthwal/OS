@@ -113,3 +113,6 @@ The CPU is now executing the `_start` label in `kernel.asm`.
         
 
 **The operating system is now fully booted and running.**
+
+Contributors
+1. Garv Barthwal
