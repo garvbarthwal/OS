@@ -117,3 +117,4 @@ The CPU is now executing the `_start` label in `kernel.asm`.
 Contributors
 1. Garv Barthwal
 2. Kashvi Kaneri
+3. Abhivayakti Satti
