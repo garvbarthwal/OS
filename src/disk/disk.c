@@ -29,11 +29,14 @@ int disk_read_sector(int lba,int total,void *buf) {
     return 0;
 }
 
-void disk_search_and_init() {
-    memset(&disk,0,sizeof(disk));
-    disk.type=OS_DISK_TYPE_REAL;
-    disk.sector_size=OS_SECTOR_SIZE;
+void disk_search_and_init()
+{
+    memset(&disk, 0, sizeof(disk));
+    disk.type = OS_DISK_TYPE_REAL;
+    disk.sector_size = 512; // replace PEACHOS_SECTOR_SIZE if you use 512
+    disk.filesystem = fs_resolve(&disk);
 }
+
 
 struct disk* disk_get(int index){
     if(index !=0 )
