@@ -5,6 +5,7 @@
 #include "io/io.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
+#include "src/string /string.h"
 
 uint16_t* vedio_mem=0;
 size_t terminal_row=0;
