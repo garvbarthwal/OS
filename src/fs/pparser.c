@@ -1,19 +1,17 @@
 #include "pparser.h"  
 #include "kernel.h"  
-#include "string/string.h"  
+#include "string/string.h"
 #include "memory/heap/kheap.h"  
 #include "memory/memory.h"  
 #include "status.h"  
 
-// This function checks if the provided path is in a valid format.  
 static int pathparser_path_valid_format(const char* filename)
 
 {  
-    int len = strnlen(filename, PEACHOS_MAX_PATH);  
+    int len = strnlen(filename, OS_MAX_PATH);  
     return (len >= 3 && isdigit(filename[0]) && memcmp((void*)&  filename[1],":/", 2) == 0);  
 }  
 
-// This function obtains the drive number from the path.  
 static int pathparser_get_drive_by_path(const char** path)  
 {  
     if(!pathparser_path_valid_format(*path))  
@@ -23,12 +21,10 @@ static int pathparser_get_drive_by_path(const char** path)
     
     int drive_no = tonumericdigit(*path[0]);  
     
-    // Add 3 bytes to skip drive number 0:/ 1:/ 2:/  
     *path += 3;  
     return drive_no;  
 }  
 
-// This function creates a root for the path.  
 static struct path_root* pathparser_create_root(int drive_number)  
 {  
     struct path_root* path_r = kzalloc(sizeof(struct path_root));  
@@ -37,20 +33,18 @@ static struct path_root* pathparser_create_root(int drive_number)
     return path_r;  
 }  
 
-// This function gets the individual parts of the path.  
 static const char* pathparser_get_path_part(const char** path)  
 {  
-    char* result_path_part = kzalloc(PEACHOS_MAX_PATH);  
+    char* result_path_part = kzalloc(OS_MAX_PATH);  
     int i = 0;  
-    while(**path != ’/’ && **path != 0x00)  
+    while(**path != '/' && **path != 0x00)  
     {  
         result_path_part[i] = **path;  
         *path += 1;
         i++;
     }
-    if (**path == ’/’)  
+    if (**path == '/')  
     {  
-        // Skip the forward slash to avoid problems  
         *path += 1;  
     }  
     if(i == 0)  
@@ -61,7 +55,6 @@ static const char* pathparser_get_path_part(const char** path)
     return result_path_part;  
 }  
 
-// This function parses each part of the path.  
 struct path_part* pathparser_parse_path_part(struct path_part*  last_part, const char** path)  
 {  
     const char* path_part_str = pathparser_get_path_part(path);  
@@ -80,7 +73,6 @@ struct path_part* pathparser_parse_path_part(struct path_part*  last_part, const
     return part;  
 } 
 
-// This function frees up the memory allocated for path parsing.  
 void pathparser_free(struct path_root* root)  
 {
     struct path_part* part = root->first;  
@@ -94,14 +86,13 @@ void pathparser_free(struct path_root* root)
     kfree(root);  
 }  
 
-// This is the main function for path parsing. It uses all the above  functions to parse the provided path.  
 struct path_root* pathparser_parse(const char* path, const char*  current_directory_path)  
 {  
     int res = 0;  
     const char* tmp_path = path;  
     struct path_root* path_root = 0;  
     
-    if (strlen(path) > PEACHOS_MAX_PATH)  
+    if (strlen(path) > OS_MAX_PATH)  
     {  
         goto out;  
     }  

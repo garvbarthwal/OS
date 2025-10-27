@@ -1,6 +1,6 @@
-#include"kernel.h"
-#include<stddef.h>
-#include<stdint.h>
+#include "kernel.h"
+#include <stddef.h>
+#include <stdint.h>
 #include "idt/idt.h"
 #include "io/io.h"
 #include "memory/heap/kheap.h"
@@ -8,7 +8,7 @@
 #include "fs/pparser.h"
 #include "string/string.h"
 #include "disk/streamer.h"
-
+#include "string/string.h"
 uint16_t* vedio_mem=0;
 size_t terminal_row=0;
 size_t terminal_col=0;
@@ -49,13 +49,13 @@ void terminal_initialise() {
     }
 }
 
-size_t strlen(const char* str){
-    size_t len=0;
-    while(str[len]){
-        len++;
-    }
-    return len;
-}
+// size_t strlen(const char* str){
+//     size_t len=0;
+//     while(str[len]){
+//         len++;
+//     }
+//     return len;
+// }
 
 void print(const char*str){
     size_t len=strlen(str);
@@ -71,21 +71,17 @@ void kernel_main()
     terminal_initialise();
     print("Hello World!\ntesting...\n");
     kheap_init();
-    disk_search_and_init(); //search & initialize disks
+    disk_search_and_init(); 
     idt_init();
     char* ptr = kzalloc(4096);
     kernel_chunk=paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);    paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
     paging_set(paging_4gb_chunk_get_directory(kernel_chunk), (void*)0x1000,(uint32_t)ptr | PAGING_ACCESS_FROM_ALL|PAGING_IS_PRESENT |PAGING_IS_WRITEABLE);
     enable_paging();
     enable_interrupts();
-    // outb(0x60,0xff);
 
-    // Create a new diskstreamer that reads from disk zero  
     struct disk_stream* stream = diskstreamer_new(0);  
-    // Seek just past our bootloader  
     diskstreamer_seek(stream, 0x201);  
     unsigned char c = 0;  
-    // Read one byte  
     diskstreamer_read(stream, &c, 1);  
     while(1) {} 
 
