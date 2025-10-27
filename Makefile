@@ -53,7 +53,7 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	nasm -f elf -g ./src/memory/paging/paging.asm -o ./build/memory/paging/paging.asm.o
 
 ./build/disk/disk.o: ./src/disk/disk.c
-	i686-elf-gcc $(INCLUDES) -I./src/disk/disk.c -o ./build/disk/disk.o
+	i686-elf-gcc $(INCLUDES) -I./src/disk $(FLAGS) -std=gnu99 -c ./src/disk/disk.c -o ./build/disk/disk.o
 
 ./build/string/string.o: ./src/string/string.c 
 	i686-elf-gcc $(INCLUDES) -I./src/string $(FLAGS) -std=gnu99 -c ./src/string/string.c -o ./build/string/string.o

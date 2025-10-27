@@ -5,8 +5,8 @@
 #include "io/io.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
-#include "src/string /string.h"
-
+#include "string/string.h"
+#include "disk/disk.h"
 uint16_t* vedio_mem=0;
 size_t terminal_row=0;
 size_t terminal_col=0;
@@ -47,13 +47,13 @@ void terminal_initialise() {
     }
 }
 
-size_t strlen(const char* str){
-    size_t len=0;
-    while(str[len]){
-        len++;
-    }
-    return len;
-}
+// size_t strlen(const char* str){
+//     size_t len=0;
+//     while(str[len]){
+//         len++;
+//     }
+//     return len;
+// }
 
 void print(const char*str){
     size_t len=strlen(str);
@@ -69,7 +69,7 @@ void kernel_main()
     terminal_initialise();
     print("Hello World!\ntesting...\n");
     kheap_init();
-    disk_seach_and_init();
+    disk_search_and_init();
     idt_init();
     char* ptr = kzalloc(4096);
     kernel_chunk=paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);    paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
