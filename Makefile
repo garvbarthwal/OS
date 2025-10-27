@@ -1,4 +1,4 @@
-FILES=./build/kernel.asm.o ./build/kernel.o ./build/idt/idt.asm.o ./build/idt/idt.o ./build/memory/memory.o ./build/io/io.asm.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/string/string.o 
+FILES=./build/kernel.asm.o ./build/kernel.o ./build/idt/idt.asm.o ./build/idt/idt.o ./build/memory/memory.o ./build/io/io.asm.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/string/string.o ./build/fs/pparser.o ./build/disk/streamer.o
 
 INCLUDES=-I./src
 FLAGS= -g -ffreestanding -falign-jumps -falign-functions \
@@ -57,6 +57,13 @@ all: ./bin/boot.bin ./bin/kernel.bin
 
 ./build/string/string.o: ./src/string/string.c 
 	i686-elf-gcc $(INCLUDES) -I./src/string $(FLAGS) -std=gnu99 -c ./src/string/string.c -o ./build/string/string.o
+
+./build/fs/pparser.o: ./src/fs/pparser.c  
+	i686-elf-gcc $(INCLUDES) -I./src/fs $(FLAGS) -std=gnu99 -c./  src/fs/pparser.c -o ./build/fs/pparser.o
+
+./build/disk/streamer.o: ./src/disk/streamer.c  
+	i686-elf-gcc $(INCLUDES) -I./src/disk $(FLAGS) -std=gnu99 -c  ./src/disk/streamer.c -o ./build/disk/streamer.o  
+
 clean:
 	rm -rf ./bin/boot.bin
 	rm -rf ./bin/kernel.bin
