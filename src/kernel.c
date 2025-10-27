@@ -8,6 +8,8 @@
 #include "fs/pparser.h"
 #include "string/string.h"
 #include "disk/streamer.h"
+#include "fs/file.h"
+
 
 uint16_t* vedio_mem=0;
 size_t terminal_row=0;
@@ -71,6 +73,7 @@ void kernel_main()
     terminal_initialise();
     print("Hello World!\ntesting...\n");
     kheap_init();
+    fs_init();
     disk_search_and_init(); //search & initialize disks
     idt_init();
     char* ptr = kzalloc(4096);

@@ -4,6 +4,8 @@
 #include "memory/heap/kheap.h"
 #include "status.h"
 #include "kernel.h"
+#include "fat/fat16.h"
+
 
 // We have a maximum total filesystems as specified in our config file.
 struct filesystem* filesystems[PEACHOS_MAX_FILESYSTEMS];
@@ -48,7 +50,7 @@ void fs_insert_filesystem(struct filesystem* filesystem)
 
 static void fs_static_load()
 {
-    // This will load the filesystems
+    fs_insert_filesystem(fat16_init());
 }
 
 void fs_load()
