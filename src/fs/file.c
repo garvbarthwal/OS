@@ -5,6 +5,16 @@
 #include "status.h"
 #include "kernel.h"
 #include "fat/fat16.h"
+#include "string/string.h"
+#include "disk/disk.h"
+
+typedef enum
+{
+    FILE_MODE_INVALID,
+    FILE_MODE_READ,
+    FILE_MODE_WRITE,
+    FILE_MODE_APPEND
+} FILE_MODE;
 
 
 // We have a maximum total filesystems as specified in our config file.
@@ -125,10 +135,91 @@ struct filesystem* fs_resolve(struct disk* disk)
     return fs;
 }
 
+FILE_MODE file_get_mode_by_string(const char* str)
+{
+    FILE_MODE mode = FILE_MODE_INVALID;
+
+    if (strncmp(str, "r", 1) == 0)
+    {
+        mode = FILE_MODE_READ;
+    }
+    else if (strncmp(str, "w", 1) == 0)
+    {
+        mode = FILE_MODE_WRITE;
+    }
+    else if (strncmp(str, "a", 1) == 0)
+    {
+        mode = FILE_MODE_APPEND;
+    }
+
+    return mode;
+}
+
+
 // This is the start of our fopen
 // function; for now we return an IO error.
 // It will do nothing for the time being.
-int fopen(const char* filename, const char* mode)
+int fopen(const char* filename, const char* mode_str)
 {
-    return -EIO;
+    int res = 0;
+    struct path_root* root_path = pathparser_parse(filename, NULL);
+    if (!root_path)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    // We cannot have just a root path like 0:/ or 0:/test.txt without more
+    if (!root_path->first)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    // Ensure the disk we are reading from exists
+    struct disk* disk = disk_get(root_path->drive_no);
+    if (!disk)
+    {
+        res = -EIO;
+        goto out;
+    }
+
+    if (!disk->filesystem)
+    {
+        res = -EIO;
+        goto out;
+    }
+
+    FILE_MODE mode = file_get_mode_by_string(mode_str);
+    if (mode == FILE_MODE_INVALID)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    void* descriptor_private_data = disk->filesystem->open(disk, root_path->first, mode);
+    if (ISERR(descriptor_private_data))
+    {
+        res = ERROR_I(descriptor_private_data);
+        goto out;
+    }
+
+    struct file_descriptor* desc = 0;
+    res = file_new_descriptor(&desc);
+    if (res < 0)
+    {
+        goto out;
+    }
+
+    desc->filesystem = disk->filesystem;
+    desc->private = descriptor_private_data;
+    desc->disk = disk;
+    res = desc->index;
+
+out:
+    // fopen shouldn’t return negative values
+    if (res < 0)
+        res = 0;
+    return res;
 }
+
