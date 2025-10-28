@@ -71,6 +71,12 @@ void kernel_main()
 {
     terminal_initialise();
     print("Hello World!\ntesting...\n");
+
+    memset(gdt_real, 0x00,, sizeof(gdt_real));
+    gdt_structured_to_gdt(gdt_real, gdt_structured, OS_TOTAL_GDT_SEGMENTS);
+
+    gdt_load(gdt_real, sizeof(gdt_real));
+
     kheap_init();
     fs_init();
     disk_search_and_init(); //search & initialize disks
