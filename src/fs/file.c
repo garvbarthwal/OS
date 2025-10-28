@@ -223,3 +223,28 @@ out:
     return res;
 }
 
+int fread(void* ptr, uint32_t size, uint32_t nmemb, int fd)
+{
+    int res = 0;
+
+    struct file_descriptor* descriptor = file_get_descriptor(fd);
+    if (!descriptor)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    struct filesystem* fs = descriptor->filesystem;
+    if (!fs->read)
+    {
+        res = -EIO;
+        goto out;
+    }
+
+    res = fs->read(descriptor->disk, descriptor->private, size, nmemb, (char*)ptr);
+
+out:
+    return res;
+}
+
+
