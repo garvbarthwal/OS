@@ -8,13 +8,8 @@
 #include "fs/pparser.h"
 #include "string/string.h"
 #include "disk/streamer.h"
-<<<<<<< HEAD
 #include "fs/file.h"
-
-
-=======
 #include "string/string.h"
->>>>>>> origin/main
 uint16_t* vedio_mem=0;
 size_t terminal_row=0;
 size_t terminal_col=0;
@@ -76,13 +71,16 @@ void kernel_main()
 {
     terminal_initialise();
     print("Hello World!\ntesting...\n");
+
+    memset(gdt_real, 0x00,, sizeof(gdt_real));
+    gdt_structured_to_gdt(gdt_real, gdt_structured, OS_TOTAL_GDT_SEGMENTS);
+
+    gdt_load(gdt_real, sizeof(gdt_real));
+
     kheap_init();
-<<<<<<< HEAD
     fs_init();
     disk_search_and_init(); //search & initialize disks
-=======
     disk_search_and_init(); 
->>>>>>> origin/main
     idt_init();
     char* ptr = kzalloc(4096);
     kernel_chunk=paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);    paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));

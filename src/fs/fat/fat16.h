@@ -134,3 +134,6 @@ struct fat_item* fat16_new_fat_item_for_directory_item(struct disk* disk, struct
 struct filesystem* fat16_init();
 
 #endif // FAT16_H
+#include "../file.h"
+struct filesystem* fat16_init();
+#endif

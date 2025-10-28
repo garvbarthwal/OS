@@ -7,6 +7,4 @@
 #define ENOMEM 3
 #define EBADPATH 4
 #define EFSNOTUS 5
-#define ERDONLY 6
-
 #endif
