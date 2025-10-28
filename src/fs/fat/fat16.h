@@ -104,11 +104,11 @@ struct fat_item
     FAT_ITEM_TYPE type;
 };
 
-struct fat_item_descriptor
-{
+struct fat_file_descriptor {
     struct fat_item* item;
     uint32_t pos;
 };
+
 
 // ==========================
 // FAT PRIVATE STRUCTURE
@@ -127,5 +127,8 @@ struct fat_private
     // Used in situations where we stream the directory
     struct disk_stream* directory_stream;
 };
+void fat16_get_full_relative_filename(struct fat_directory_item* item, char* out, int max_len);
+struct fat_directory_item* fat16_clone_directory_item(struct fat_directory_item* item, int size);
+struct fat_item* fat16_new_fat_item_for_directory_item(struct disk* disk, struct fat_directory_item* item);
 
 #endif // FAT16_H
