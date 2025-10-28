@@ -3,3 +3,7 @@ data.bin
 os.bin
 
 
+/bin/
+/build/
+*.o
+*.bin
