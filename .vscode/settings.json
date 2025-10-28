@@ -5,7 +5,8 @@
         "kheap.h": "c",
         "string.h": "c",
         "memory.h": "c",
-        "status.h": "c"
+        "status.h": "c",
+        "file.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -7,10 +7,10 @@
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 
-#define OS_FAT16_SIGNATURE 0x29
+#define OS_FAT16_SIGNATURE      0x29
 #define OS_FAT16_FAT_ENTRY_SIZE 0x02
-#define OS_FAT16_BAD_SECTOR 0xFF7
-#define OS_FAT16_UNUSED 0x00
+#define OS_FAT16_BAD_SECTOR     0xFF7
+#define OS_FAT16_UNUSED         0x00
 
 typedef unsigned int FAT_ITEM_TYPE;
 

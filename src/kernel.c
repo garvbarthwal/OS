@@ -8,21 +8,8 @@
 #include "fs/pparser.h"
 #include "string/string.h"
 #include "disk/streamer.h"
+#include "fs/file.h"
 #include "string/string.h"
-#include "memory/memory.h"
-#include "gdt/gdt.h"
-#include "config.h"
-
-struct gdt gdt_real[OS_TOTAL_GDT_SEGMENTS];  
-struct gdt_structured gdt_structured[OS_TOTAL_GDT_SEGMENTS] = 
-{  
-    {.base = 0x00, .limit = 0x00, .type = 0x00},// NULL Segment  
-    {.base = 0x00, .limit = 0xffffffff, .type = 0x9a},// Kernel code segment  
-    {.base = 0x00, .limit = 0xffffffff, .type = 0x92}// Kernel data  segment  
-}; 
-
-
-
 uint16_t* vedio_mem=0;
 size_t terminal_row=0;
 size_t terminal_col=0;
