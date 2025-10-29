@@ -2,109 +2,116 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "idt/idt.h"
-#include "io/io.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
-#include "fs/pparser.h"
 #include "string/string.h"
-#include "disk/streamer.h"
 #include "fs/file.h"
-#include "string/string.h"
-uint16_t* vedio_mem=0;
-size_t terminal_row=0;
-size_t terminal_col=0;
+#include "disk/disk.h"
+#include "fs/pparser.h"
+#include "disk/streamer.h"
 
+uint16_t* video_mem = 0;
+uint16_t terminal_row = 0;
+uint16_t terminal_col = 0;
 
-uint16_t terminal_make_char(char c, char colour) {
+uint16_t terminal_make_char(char c, char colour)
+{
     return (colour << 8) | c;
 }
 
-void terminal_putchar(int x,int y,char c,char colour){
-    vedio_mem[(y * VGA_WIDTH) + x]= terminal_make_char(c,colour);
+void terminal_putchar(int x, int y, char c, char colour)
+{
+    video_mem[(y * VGA_WIDTH) + x] = terminal_make_char(c, colour);
 }
 
-void terminal_writechar(char c, char colour){
-    if(c == '\n') {
-        terminal_row+=1;
-        terminal_col=0;
-        return ;
+void terminal_writechar(char c, char colour)
+{
+    if (c == '\n')
+    {
+        terminal_row += 1;
+        terminal_col = 0;
+        return;
     }
 
-    terminal_putchar(terminal_col,terminal_row,c,colour);
-    terminal_col+=1;
-    if(terminal_col >= VGA_WIDTH) {
-        terminal_col=0;
-        terminal_row=1;
+    terminal_putchar(terminal_col, terminal_row, c, colour);
+    terminal_col += 1;
+    if (terminal_col >= VGA_WIDTH)
+    {
+        terminal_col = 0;
+        terminal_row += 1;
     }
-
 }
-
-void terminal_initialise() {
-    vedio_mem=(uint16_t*)(0xB8000);
-    terminal_row=0;
-    terminal_col=0;
-    for(int y=0;y<VGA_HEIGHT;y++){
-        for(int x=0;x<VGA_WIDTH;x++){
-            terminal_putchar(x,y,' ',0);
+void terminal_initialize()
+{
+    video_mem = (uint16_t*)(0xB8000);
+    terminal_row = 0;
+    terminal_col = 0;
+    for (int y = 0; y < VGA_HEIGHT; y++)
+    {
+        for (int x = 0; x < VGA_WIDTH; x++)
+        {
+            terminal_putchar(x, y, ' ', 0);
         }
+    }   
+}
+
+
+
+void print(const char* str)
+{
+    size_t len = strlen(str);
+    for (int i = 0; i < len; i++)
+    {
+        terminal_writechar(str[i], 15);
     }
 }
 
-// size_t strlen(const char* str){
-//     size_t len=0;
-//     while(str[len]){
-//         len++;
-//     }
-//     return len;
-// }
 
-void print(const char*str){
-    size_t len=strlen(str);
-    for(int i=0;i<len;i++){
-        terminal_writechar(str[i],15);
-    }
+static struct paging_4gb_chunk* kernel_chunk = 0;
+
+void panic(const char* msg)
+{
+    print(msg);
+    while(1) {}
 }
-
-static struct paging_4gb_chunk* kernel_chunk=0;
 
 void kernel_main()
 {
-    terminal_initialise();
-    print("Hello World!\ntesting...\n");
+    terminal_initialize();
+    print("Hello world!\ntest");
 
-    memset(gdt_real, 0x00,, sizeof(gdt_real));
-    gdt_structured_to_gdt(gdt_real, gdt_structured, OS_TOTAL_GDT_SEGMENTS);
-
-    gdt_load(gdt_real, sizeof(gdt_real));
-
+    // Initialize the heap
     kheap_init();
+
+    // Initialize filesystems
     fs_init();
-    disk_search_and_init(); //search & initialize disks
-    disk_search_and_init(); 
+
+    // Search and initialize the disks
+    disk_search_and_init();
+
+    // Initialize the interrupt descriptor table
     idt_init();
-    char* ptr = kzalloc(4096);
-    kernel_chunk=paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);    paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
-    paging_set(paging_4gb_chunk_get_directory(kernel_chunk), (void*)0x1000,(uint32_t)ptr | PAGING_ACCESS_FROM_ALL|PAGING_IS_PRESENT |PAGING_IS_WRITEABLE);
+
+    // Setup paging
+    kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+    
+    // Switch to kernel paging chunk
+    paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
+
+    // Enable paging
     enable_paging();
+    
+    // Enable the system interrupts
     enable_interrupts();
 
-    /*struct disk_stream* stream = diskstreamer_new(0);  
-    diskstreamer_seek(stream, 0x201);  
-    unsigned char c = 0;  
-    diskstreamer_read(stream, &c, 1);  
-    while(1) {}*/
     int fd = fopen("0:/hello.txt", "r");
     if (fd)
-        {
-    print("We opened hello.txt\n");
-    }
-    else
-        {
-    print("Failed to open hello.txt\n");
-    }
+    {
+        struct file_stat s;
+        fstat(fd, &s);
+        fclose(fd);
 
+        print("Testing.....\n");
+    }
     while(1) {}
-
-
 }
-

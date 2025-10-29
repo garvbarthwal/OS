@@ -2,28 +2,14 @@
 #include "config.h"
 #include "memory/memory.h"
 #include "memory/heap/kheap.h"
-#include "status.h"
-#include "kernel.h"
-#include "fat/fat16.h"
 #include "string/string.h"
 #include "disk/disk.h"
-
-typedef enum
-{
-    FILE_MODE_INVALID,
-    FILE_MODE_READ,
-    FILE_MODE_WRITE,
-    FILE_MODE_APPEND
-} FILE_MODE;
-
-
-// We have a maximum total filesystems as specified in our config file.
+#include "fat/fat16.h"
+#include "status.h"
+#include "kernel.h"
 struct filesystem* filesystems[OS_MAX_FILESYSTEMS];
 struct file_descriptor* file_descriptors[OS_MAX_FILE_DESCRIPTORS];
 
-// This function gets a free available filesystem slot from the
-// filesystems array that can be used
-// by someone who wants to register a new filesystem in the VFS layer.
 static struct filesystem** fs_get_free_filesystem()
 {
     int i = 0;
@@ -34,27 +20,20 @@ static struct filesystem** fs_get_free_filesystem()
             return &filesystems[i];
         }
     }
+
     return 0;
 }
 
-// When a filesystem driver that we will implement such as
-// FAT16 wants to register its self in our VFS system it
-// will call this function and pass a filesystem structure
-// that implements all its pointers to its
-// underlying open, write and read functions.
-// Additionally the filesystem
-// name would be provided.
-// This function then clones the data and
-// stores it in a free filesystem array index
 void fs_insert_filesystem(struct filesystem* filesystem)
 {
     struct filesystem** fs;
     fs = fs_get_free_filesystem();
     if (!fs)
     {
-        print("Problem inserting filesystem");
+        print("Problem inserting filesystem"); 
         while(1) {}
     }
+
     *fs = filesystem;
 }
 
@@ -75,9 +54,12 @@ void fs_init()
     fs_load();
 }
 
-// This function will be used to create a new
-// descriptor for a given file
-// You’ll see how it’s used later in the book
+static void file_free_descriptor(struct file_descriptor* desc)
+{
+    file_descriptors[desc->index-1] = 0x00;
+    kfree(desc);
+}
+
 static int file_new_descriptor(struct file_descriptor** desc_out)
 {
     int res = -ENOMEM;
@@ -94,71 +76,55 @@ static int file_new_descriptor(struct file_descriptor** desc_out)
             break;
         }
     }
+
     return res;
 }
 
-// This function returns a file descriptor
-// In Linux the "open" function opens a file
-// and returns a descriptor number.
-// Our system works similarly—we identify open
-// file descriptors by numbers; we can get the descriptor
-// information if we know the number.
-// The descriptor describes the open file.
 static struct file_descriptor* file_get_descriptor(int fd)
 {
     if (fd <= 0 || fd >= OS_MAX_FILE_DESCRIPTORS)
     {
         return 0;
     }
+
     // Descriptors start at 1
     int index = fd - 1;
     return file_descriptors[index];
 }
 
-// This function will return the filesystem that
-// can read the provided disk.
-// If no loaded filesystems can read the disk then
-// NULL|0 is returned.
 struct filesystem* fs_resolve(struct disk* disk)
 {
     struct filesystem* fs = 0;
     for (int i = 0; i < OS_MAX_FILESYSTEMS; i++)
     {
-        // If the below filesystem’s resolve function
-        // returns zero then it can read the disk
         if (filesystems[i] != 0 && filesystems[i]->resolve(disk) == 0)
         {
             fs = filesystems[i];
             break;
         }
     }
+
     return fs;
 }
 
 FILE_MODE file_get_mode_by_string(const char* str)
 {
     FILE_MODE mode = FILE_MODE_INVALID;
-
     if (strncmp(str, "r", 1) == 0)
     {
         mode = FILE_MODE_READ;
     }
-    else if (strncmp(str, "w", 1) == 0)
+    else if(strncmp(str, "w", 1) == 0)
     {
         mode = FILE_MODE_WRITE;
     }
-    else if (strncmp(str, "a", 1) == 0)
+    else if(strncmp(str, "a", 1) == 0)
     {
         mode = FILE_MODE_APPEND;
     }
-
     return mode;
 }
 
-
-// This is the start of our fopen
-// function; for now we return an IO error.
-// It will do nothing for the time being.
 int fopen(const char* filename, const char* mode_str)
 {
     int res = 0;
@@ -169,7 +135,7 @@ int fopen(const char* filename, const char* mode_str)
         goto out;
     }
 
-    // We cannot have just a root path like 0:/ or 0:/test.txt without more
+    // We cannot have just a root path 0:/ 0:/test.txt
     if (!root_path->first)
     {
         res = -EINVARG;
@@ -210,16 +176,84 @@ int fopen(const char* filename, const char* mode_str)
     {
         goto out;
     }
-
     desc->filesystem = disk->filesystem;
     desc->private = descriptor_private_data;
     desc->disk = disk;
     res = desc->index;
 
 out:
-    // fopen shouldn’t return negative values
+    // fopen shouldnt return negative values
     if (res < 0)
         res = 0;
+
     return res;
 }
 
+int fstat(int fd, struct file_stat* stat)
+{
+    int res = 0;
+    struct file_descriptor* desc = file_get_descriptor(fd);
+    if (!desc)
+    {
+        res = -EIO;
+        goto out;
+    }
+
+    res = desc->filesystem->stat(desc->disk, desc->private, stat);
+out:
+    return res;
+}
+
+int fclose(int fd)
+{
+    int res = 0;
+    struct file_descriptor* desc = file_get_descriptor(fd);
+    if (!desc)
+    {
+        res = -EIO;
+        goto out;
+    }
+
+    res = desc->filesystem->close(desc->private);
+    if (res == OS_ALL_OK)
+    {
+        file_free_descriptor(desc);
+    }
+out:
+    return res;
+}
+
+int fseek(int fd, int offset, FILE_SEEK_MODE whence)
+{
+    int res = 0;
+    struct file_descriptor* desc = file_get_descriptor(fd);
+    if (!desc)
+    {
+        res = -EIO;
+        goto out;
+    }
+
+    res = desc->filesystem->seek(desc->private, offset, whence);
+out:
+    return res;
+}
+int fread(void* ptr, uint32_t size, uint32_t nmemb, int fd)
+{
+    int res = 0;
+    if (size == 0 || nmemb == 0 || fd < 1)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    struct file_descriptor* desc = file_get_descriptor(fd);
+    if (!desc)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    res = desc->filesystem->read(desc->disk, desc->private, size, nmemb, (char*) ptr);
+out:
+    return res;
+}
